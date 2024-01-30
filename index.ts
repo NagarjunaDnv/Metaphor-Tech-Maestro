@@ -27,21 +27,26 @@ const twitterClient = new TwitterApi({
 })
 
 app.post("/tweet", async(req: Request, res: Response) => {
+    try {
+        const metaphorsColletionRef = firebaseAdmin.firestore().collection('metaphors');
 
-    const metaphorsColletionRef = firebaseAdmin.firestore().collection('metaphors');
-
-    const querySnapshot = await metaphorsColletionRef
-      .where('retrieved', '==', false)
-      .limit(1)
-      .get();
-
-    if (!querySnapshot.empty) {
-        const document = querySnapshot.docs[0].data() as DocumentData;
-        await twitterClient.v2.tweet(`${document.title}\r\n\r\n${document.description}`);
-        await querySnapshot.docs[0].ref.update({ retrieved: true });
-        res.send("Tweet successfull")
-    } else {
-        res.send("No new metaphor to tweet")
+        const querySnapshot = await metaphorsColletionRef
+          .where('retrieved', '==', false)
+          .limit(1)
+          .get();
+    
+        if (!querySnapshot.empty) {
+            const document = querySnapshot.docs[0].data() as DocumentData;
+            await twitterClient.v2.tweet(`${document.title}\r\n\r\n${document.description}`);
+            await querySnapshot.docs[0].ref.update({ retrieved: true });
+            return res.send("Tweet successfull").status(200)
+        } else {
+            return res.send("No new metaphor to tweet").status(200)
+        }
+    }
+    catch (error) {
+        console.error('Error posting a tweet:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
   
