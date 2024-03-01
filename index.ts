@@ -37,7 +37,7 @@ app.post("/tweet", async(req: Request, res: Response) => {
     
         if (!querySnapshot.empty) {
             const document = querySnapshot.docs[0].data() as DocumentData;
-            await twitterClient.v2.tweet(`${document.title}\r\n\r\n${document.description}`);
+            await twitterClient.v2.tweet(document.description);
             await querySnapshot.docs[0].ref.update({ retrieved: true });
             return res.send("Tweet successfull").status(200)
         } else {
